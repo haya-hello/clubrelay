@@ -130,6 +130,30 @@ def ask(user, pack_id, session_id, question, request_id, revision):
     return session
 
 
+def checklist_options(entries, session):
+    """从已保存回答重建建议，客户端只能提交标识。 / Rebuild saved suggestions; clients may submit identifiers only."""
+    options = [{**entry, "origin": "handover"} for entry in entries]
+    if not session or not entries:
+        return options
+    by_id = {entry["id"]: entry for entry in entries}
+    en = session.context["language"] == "en"
+    for turn in session.turns:
+        for index, answer in enumerate((turn.get("response") or {}).get("answers", [])):
+            if answer["kind"] != "suggestion" or not answer["entry_ids"] or any(key not in by_id for key in answer["entry_ids"]):
+                continue
+            evidence = []
+            for key in answer["entry_ids"]:
+                for ref in by_id[key]["evidence"]:
+                    if ref not in evidence:
+                        evidence.append(ref)
+            options.append({"id": f"answer:{turn['request_id']}:{index}", "origin": "conversation", "section": "practice",
+                            "title": answer["text"][:90], "suggestion": answer["text"],
+                            "record": "Generated advice, not a recorded fact." if en else "本次生成的建议，不是材料事实。",
+                            "conditions": "Check applicability to the saved event context." if en else "执行前核对是否适用于已保存的活动条件。",
+                            "evidence": evidence, "has_evidence": bool(evidence)})
+    return options
+
+
 def update(user, pack_id, session_id, revision, selected=None, reset=False):
     with CONFIG_LOCK, transaction.atomic():
         session = owned(user, pack_id, session_id)
@@ -137,9 +161,9 @@ def update(user, pack_id, session_id, revision, selected=None, reset=False):
         if reset:
             _claim(session, revision, turns=[], selected=[], pending=None, pending_at=None)
         else:
-            valid_ids = {e["id"] for e in entries}
+            valid_ids = {e["id"] for e in checklist_options(entries, session)}
             if not isinstance(selected, list) or len(selected) > len(valid_ids) or any(not isinstance(v, str) or v not in valid_ids for v in selected) or len(selected) != len(set(selected)):
-                raise ValidationError("清单条目不属于此交接版本。 / Checklist item is outside this handover.")
+                raise ValidationError("清单条目不属于此次准备。 / Checklist item is outside this preparation.")
             if session.pending:
                 raise Conflict("请等待当前回答完成再保存。 / Wait for the current answer before saving.")
             _claim(session, revision, selected=selected)
@@ -153,7 +177,7 @@ def public_state(user, pack_id, session):
     except ValidationError as exc:
         pack, entries = HandoffPack.objects.get(pk=pack_id), []
         error = " / ".join(exc.messages)
-    state = {"pack_id": str(pack.pk), "title": pack.title, "entries": entries, "error": error, "session": None}
+    state = {"pack_id": str(pack.pk), "title": pack.title, "entries": entries, "options": checklist_options(entries, session), "error": error, "session": None}
     if session:
         state["session"] = {"id": str(session.pk), "context": session.context, "turns": session.turns, "selected": session.selected, "revision": session.revision, "pending": bool(session.pending)}
     return state
@@ -165,7 +189,7 @@ def export_context(user, pack_id, session_id):
     if not session.selected:
         raise ValidationError("请先选择并保存准备事项。 / Select and save preparation items first.")
     gaps = list(dict.fromkeys([e["conditions"] or e["title"] for e in entries if e["section"] == "question"] + [g for t in session.turns if t.get("response") for g in t["response"]["unknowns"]]))
-    return {"context": session.context, "version": str(pack.pk), "entries": [e for e in entries if e["id"] in session.selected], "gaps": gaps, "english": session.context["language"] == "en"}
+    return {"context": session.context, "version": str(pack.pk), "entries": [e for e in checklist_options(entries, session) if e["id"] in session.selected], "gaps": gaps, "english": session.context["language"] == "en"}
 
 
 def export(user, pack_id, session_id):

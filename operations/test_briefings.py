@@ -193,3 +193,28 @@ class BriefingTests(TestCase):
     def test_empty_checklist_cannot_be_exported(self):
         session=self.session()
         with self.assertRaises(ValidationError):briefings.export(self.manager,self.pack.pk,session.pk)
+
+    def test_generated_suggestion_survives_reload_and_both_exports(self):
+        session=self.session()
+        with patch("operations.briefings.analyze_sources",return_value=self.answer()):session=self.ask(session)
+        state=briefings.public_state(self.manager,self.pack.pk,session)
+        advice=next(e for e in state["options"] if e["origin"]=="conversation")
+        session=briefings.update(self.manager,self.pack.pk,session.pk,session.revision,selected=[advice["id"]])
+        session.refresh_from_db()
+        self.assertEqual(session.selected,[advice["id"]])
+        exported=briefings.export(self.manager,self.pack.pk,session.pk)
+        self.assertIn("applicability still needs review",exported)
+        self.assertIn(advice["evidence"][0]["quote"],exported)
+        printed=self.client.get(reverse("briefing_export",args=[self.pack.pk,session.pk,"print"]))
+        self.assertContains(printed,self.answer()["answers"][0]["text"])
+        self.a.text+=" Changed";self.a.save()
+        with self.assertRaises(ValidationError):briefings.export(self.manager,self.pack.pk,session.pk)
+
+    def test_foreign_or_reset_conversation_suggestion_cannot_be_selected(self):
+        session=self.session()
+        with patch("operations.briefings.analyze_sources",return_value=self.answer()):session=self.ask(session)
+        advice=briefings.checklist_options(briefings.guard(self.manager,self.pack.pk)[3],session)[-1]
+        other=briefings.create(self.manager,self.pack.pk,session.context,uuid.uuid4())
+        with self.assertRaises(ValidationError):briefings.update(self.manager,self.pack.pk,other.pk,other.revision,selected=[advice["id"]])
+        session=briefings.update(self.manager,self.pack.pk,session.pk,session.revision,reset=True)
+        with self.assertRaises(ValidationError):briefings.update(self.manager,self.pack.pk,session.pk,session.revision,selected=[advice["id"]])

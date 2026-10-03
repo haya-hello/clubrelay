@@ -10,7 +10,7 @@ Built for the **Alexa+ simulated-experience path** of the Amazon Developer Hacka
 
 - One reviewed handover, one organizer's event context, multi-turn follow-up questions.
 - Short answers labelled as recorded facts, suggestions or unresolved gaps; expandable original evidence.
-- A saved preparation checklist with Markdown and print/PDF export. Selection is not task completion.
+- A saved preparation checklist containing selected reviewed advice or newly generated conversation suggestions, with Markdown and print/PDF export. Selection is not task completion.
 - Persistent owner-scoped preparation, source-change checks, consent checks and duplicate-request protection.
 - English and Chinese interface; optional browser speech recognition and local-system read-aloud. Text remains available when voice fails.
 

@@ -83,10 +83,10 @@
     }
     conversation.scrollTop = conversation.scrollHeight;
     const checklist=$('checklist'); checklist.replaceChildren();
-    for (const entry of state.entries) {
+    for (const entry of state.options) {
       const card=node('div','check-item'), label=node('label'), checkbox=node('input'); checkbox.type='checkbox'; checkbox.value=entry.id; checkbox.checked=Boolean(session?.selected.includes(entry.id));
       checkbox.addEventListener('change',()=>{dirty=true; updateCount(); $('saved-status').textContent=t('有未保存的选择。','Unsaved selection.');buttons();});
-      label.append(checkbox,node('span','',entry.title)); card.append(label,node('p','',entry.suggestion));
+      label.append(checkbox,node('span','',entry.title)); card.append(label,node('small','',entry.origin==='conversation'?t('本次对话建议','Advice from this conversation'):t('已审核交接建议','Reviewed handover advice')),node('p','',entry.suggestion));
       if (entry.section==='question') card.append(node('small','',t('待确认，尚无答案','Open question, not an answer')));
       card.append(evidence(entry)); checklist.append(card);
     }

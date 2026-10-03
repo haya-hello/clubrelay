@@ -233,8 +233,8 @@
     },
     {
       "path": "docs/CHANGES.md",
-      "sha256": "9d6da99154f815211d86caeb62c354f630afad5227ab84766d85f69d2f07f74e",
-      "bytes": 1380
+      "sha256": "840c3ac38813df36202fffdd362bb3a2f7bbc4991b4654ba9d3a52eb0dff951e",
+      "bytes": 1483
     },
     {
       "path": "docs/PRODUCT_FEEDBACK.md",
@@ -248,18 +248,18 @@
     },
     {
       "path": "docs/sample-preparation.md",
-      "sha256": "1183fc65af36870d2c8edc5ec05270dcc15912206d587b894cc00cd6153e98c5",
-      "bytes": 2286
+      "sha256": "d7f776f7dd5efe85a6326837dcb801ac8804d5c60d6e39b1b99cd9f8fd78bd93",
+      "bytes": 2610
     },
     {
       "path": "docs/VALIDATION.md",
-      "sha256": "eefc04d7d4bf248976854d057d7228a4b7f78a9d82501839944b50c27e0b9d4f",
-      "bytes": 2738
+      "sha256": "99e5512fbab62eafe4143c125d14df73c14316f8e98af8899df077dc0ef5b561",
+      "bytes": 2936
     },
     {
       "path": "docs/workspace-en.png",
-      "sha256": "6e6917988e346b9634cfcb26c018615b470594723bfb825498770d1bb713286b",
-      "bytes": 156611
+      "sha256": "7907723ed37c73886da9fb5b59ed4a0ad56844189a7b70378934b6462884b581",
+      "bytes": 150059
     },
     {
       "path": "examples/amazon/01-plan.md",
@@ -463,8 +463,8 @@
     },
     {
       "path": "operations/briefings.py",
-      "sha256": "5b672bc74dd905a8dc40efc321a522d602bef71593306bf0a784d18e3e872425",
-      "bytes": 11308
+      "sha256": "e9934f577377ae7834f9500d347c91b0487196975fb2e10a7c4e7006c613d063",
+      "bytes": 12922
     },
     {
       "path": "operations/credentials.py",
@@ -598,13 +598,13 @@
     },
     {
       "path": "operations/static/operations/briefing.css",
-      "sha256": "bdb608778396e79967f040cbd6c5e507eb7907591f50d83025313f90f96754c7",
-      "bytes": 8365
+      "sha256": "bfb6cdbd1c21c30fd9afb713b3e64082c285a2d7192e3e53a810ecb660f2391d",
+      "bytes": 8615
     },
     {
       "path": "operations/static/operations/briefing.js",
-      "sha256": "3235373986d55e8290e8516e87c92749ec1f73fcb44d86af50f16590d3715f88",
-      "bytes": 11662
+      "sha256": "cdfef7cdfcc7eb700369a1449a9bc3385c5317a4893073cf4e8189433022f8bf",
+      "bytes": 11819
     },
     {
       "path": "operations/static/operations/handoffs.css",
@@ -633,8 +633,8 @@
     },
     {
       "path": "operations/test_briefings.py",
-      "sha256": "f44f182a440bf5e4c57ff634e54d21f548151b5dcb745c25d2d86635aecb3be6",
-      "bytes": 11427
+      "sha256": "0699dc3f26e2ce7ef76649a8c90865c0becac49daf364f3079fdb9fcde54467c",
+      "bytes": 13320
     },
     {
       "path": "operations/test_credentials.py",
@@ -703,8 +703,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "32753786154fc21e67f190954ad60b6899b988b065e3768dbc861fc71bf1ec38",
-      "bytes": 6415
+      "sha256": "31c0a94da0091606e4a9893b3fd2bba2b58091c6f016ec7f61081fcfeb4b8263",
+      "bytes": 6496
     },
     {
       "path": "requirements.txt",
@@ -718,8 +718,8 @@
     },
     {
       "path": "scripts/qa-amazon.cjs",
-      "sha256": "07657a876857b647da8f042f1cabf2221d1c263f73ad9ad065946000ac8ff8c0",
-      "bytes": 9298
+      "sha256": "685d291b2f2433207cd286b8fcab95a42513de64b5980c03b62fdb3736f473b8",
+      "bytes": 9626
     },
     {
       "path": "scripts/qa-assistant.cjs",
@@ -923,8 +923,8 @@
     },
     {
       "path": "templates/ops/briefing.html",
-      "sha256": "54d4b28c6cec185c62351b3d4526a4545742cd95a4e86938efc4c31985df85f1",
-      "bytes": 6785
+      "sha256": "d8db1df1aa3dd3c711095057245cc8bf5c4972d20443be8500b90d1c2c779544",
+      "bytes": 6826
     },
     {
       "path": "templates/ops/briefing_print.html",
