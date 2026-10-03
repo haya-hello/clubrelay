@@ -1,0 +1,7 @@
+{% extends 'ops/base.html' %}
+{% block title %}社团知识助手 · 青链{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ASK</p><h1 class="page-title">社团知识助手</h1><p class="muted">当前是已确认知识卡的本地检索，不是自由生成式 AI。</p></div><a class="button secondary" href="{% url 'collector_knowledge' %}">查看知识库</a></div>
+<form method="get" class="panel filter-panel"><div class="filter-fields"><div class="field"><label for="q">你想解决什么问题</label><input id="q" name="q" value="{{ query }}" placeholder="例如：安装环境失败怎么办"></div><div class="filter-actions"><button class="button" type="submit">查社团经验</button></div></div></form>
+{% if query %}<section class="panel"><h2>检索结果</h2>{% for card in cards %}<article class="activity-row"><div><div class="row-meta"><span class="badge">已确认</span></div><h3><a href="{% url 'collector_card' card.pk %}">{{ card.title }}</a></h3><p><strong>问题：</strong>{{ card.problem }}</p>{% if card.solution %}<p><strong>解决办法：</strong>{{ card.solution }}</p>{% endif %}{% if card.result %}<p><strong>结果：</strong>{{ card.result }}</p>{% endif %}<p class="muted">引用 {{ card.citations.count }} 条原始消息</p></div></article>{% empty %}<div class="empty compact"><h3>知识库暂无可靠记录</h3><p>系统不会用模型常识冒充社团自己的经验。</p></div>{% endfor %}</section>{% endif %}
+{% endblock %}

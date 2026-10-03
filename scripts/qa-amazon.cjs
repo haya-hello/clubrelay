@@ -1,0 +1,64 @@
+// 沿用项目隔离浏览器验收；固定模型响应仅用于测试。 / Reuse isolated browser acceptance; fixed model responses are tests only.
+const fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
+const {spawn,execFileSync}=require('child_process');
+const {chromium}=require('playwright');
+const root=path.resolve(__dirname,'..'),python=path.join(root,'.venv','Scripts','python.exe');
+const out=fs.mkdtempSync(path.join(root,'var','qa','clubrelay-amazon-'));
+const env={...process.env,QINGLIAN_DATA_DIR:path.join(out,'data'),QINGLIAN_AI_API_KEY:'',PYTHONIOENCODING:'utf-8'};
+const base='http://127.0.0.1:8043',pack='e5abc715-cdf8-5514-983b-c88cd1a31672',checks=[],errors=[],requests=[];
+let mock,server,browser,fail=false;
+const manage=(...args)=>execFileSync(python,['manage.py',...args],{cwd:root,env,windowsHide:true,encoding:'utf8'});
+const check=(value,label)=>{assert.ok(value,label);checks.push(label);};
+(async()=>{
+  manage('migrate','--noinput');manage('seed_amazon_demo');
+  manage('shell','-c',`from operations.models import HandoffPack,ModelConfiguration; from operations.analysis import grant_permission,configuration_hash; p=HandoffPack.objects.get(pk='${pack}'); c,_=ModelConfiguration.objects.update_or_create(pk=1,defaults={'mode':'local','base_url':'http://127.0.0.1:8044','model':'mock-not-a-real-model','enabled':True}); grant_permission(p.created_by,p.event,[s['id'] for s in p.source_manifest],expected_config_fingerprint=configuration_hash(c))`);
+  mock=http.createServer((req,res)=>{const chunks=[];req.on('data',c=>chunks.push(c));req.on('end',()=>{const body=JSON.parse(Buffer.concat(chunks));const content=JSON.parse(body.messages[1].content);requests.push(content);if(fail){res.writeHead(503).end('{}');return;}const item=content.sources.find(s=>JSON.parse(s.text).has_evidence);const result={answers:[{kind:'suggestion',text:'Automated test response: use the reviewed preparation advice; this is not a live model result.',entry_ids:[item.id]}],unknowns:['Who lends the equipment?']};res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify({choices:[{message:{content:JSON.stringify(result)}}]}));});});
+  await new Promise(resolve=>mock.listen(8044,'127.0.0.1',resolve));
+  server=spawn(python,['manage.py','runserver','127.0.0.1:8043','--noreload','--insecure'],{cwd:root,env,windowsHide:true,stdio:'ignore'});
+  for(let n=0;n<80;n++){try{if((await fetch(base+'/login/')).ok)break;}catch{}await new Promise(r=>setTimeout(r,200));}
+  browser=await chromium.launch({channel:'chrome',headless:true});
+  const context=await browser.newContext({viewport:{width:1440,height:1050}}),page=await context.newPage();
+  page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(10000);
+  await context.route('**/*',route=>route.request().url().startsWith(base+'/')?route.continue():route.abort());
+  const credentials=JSON.parse(fs.readFileSync(path.join(env.QINGLIAN_DATA_DIR,'demo-accounts.json')));
+  await page.goto(base+'/login/');await page.locator('#id_username').fill('manager');await page.locator('#id_password').fill(credentials.manager.password);await page.getByRole('button',{name:/进入运营台/}).click();await page.waitForURL(base+'/');
+  await page.goto(`${base}/handoffs/${pack}/briefing/?lang=en`);
+  check(await page.getByText('Alexa+ simulated experience',{exact:true}).isVisible(),'Simulation disclosure visible');
+  check(await page.locator('#send').isDisabled(),'Sending disabled before session');
+  await page.locator('#goal').fill('First campus meetup');await page.locator('#constraints').fill('Limited setup time');await page.locator('#start').click();
+  await page.waitForFunction(()=>!document.querySelector('#send').disabled);
+  check(requests.length===0,'Creating context makes no model call');
+  await page.locator('[data-prompt]').first().click();await page.locator('#send').click();
+  await page.locator('.turn').waitFor();await page.waitForFunction(()=>!document.querySelector('#send').disabled);
+  check(requests.length===1,'One real HTTP request to isolated mock');
+  check(JSON.parse(requests[0].question).event_context.expected_attendees===40,'Expected attendance sent as future context');
+  await page.locator('.conversation .evidence summary').first().click();
+  check(await page.locator('.conversation blockquote').first().isVisible(),'Evidence expands');
+  await page.locator('#question').fill('Why do you suggest that?');await page.locator('#send').click();
+  await page.waitForFunction(()=>document.querySelectorAll('.turn').length===2 && !document.querySelector('#send').disabled);
+  check(JSON.parse(requests[1].question).history.length===1,'Follow-up includes server-side history');
+  const boxes=page.locator('.check-item input');await boxes.nth(0).check();await boxes.nth(1).check();await boxes.nth(2).check();
+  check(await page.locator('#export-md').getAttribute('aria-disabled')==='true','Dirty selections cannot export');
+  await page.locator('#save-selection').click();await page.waitForFunction(()=>document.querySelector('#export-md').getAttribute('aria-disabled')==='false');
+  await page.reload();check(await page.locator('.check-item input:checked').count()===3,'Selections survive reload');check(await page.locator('.turn').count()===2,'Conversation survives reload');
+  const download=page.waitForEvent('download');await page.locator('#export-md').click();const file=await download;await file.saveAs(path.join(out,'checklist.md'));
+  check(fs.readFileSync(path.join(out,'checklist.md'),'utf8').includes('Selected for preparation, not completed'),'Export retains selection meaning');
+  fail=true;await page.locator('#question').fill('Keep this question after failure');await page.locator('#send').click();
+  await page.waitForFunction(()=>document.querySelector('#global-status').textContent.includes('service_unavailable'));
+  check(await page.locator('#question').inputValue()==='Keep this question after failure','Failed request retains typed question');
+  check(await page.locator('.check-item input:checked').count()===3,'Failed request preserves saved selection');fail=false;
+  const initial=await page.evaluate(()=>({h1:getComputedStyle(document.querySelector('h1')).opacity,textarea:document.querySelector('#question').getBoundingClientRect().height}));check(initial.h1==='1' && initial.textarea>0,'Core content visible without animation gate');
+  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1050});await page.screenshot({path:path.join(out,`layout-${width}.png`),fullPage:true});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`No overflow at ${width}`);}
+  await page.setViewportSize({width:1440,height:1050});await page.goto(`${base}/handoffs/${pack}/briefing/?lang=zh`);await page.screenshot({path:path.join(out,'chinese.png'),fullPage:true});
+  const cdp=await context.newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const doc=await cdp.send('DOM.getDocument');
+  const fontReport={};for(const selector of ['h1','.brand','.count']){const found=await cdp.send('DOM.querySelector',{nodeId:doc.root.nodeId,selector});fontReport[selector]=await cdp.send('CSS.getPlatformFontsForNode',{nodeId:found.nodeId});}
+  check(fontReport.h1.fonts.some(f=>f.glyphCount>0),'Rendered heading font measured');
+  await page.addStyleTag({content:':root{font-family:"Missing-ClubRelay-Font","Microsoft YaHei",Arial,sans-serif!important}'});await page.screenshot({path:path.join(out,'font-fallback.png'),fullPage:true});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Font fallback remains usable');
+  await page.emulateMedia({reducedMotion:'reduce'});check(await page.locator('.spotlight').evaluate(el=>getComputedStyle(el,'::before').display)==='none','Reduced motion disables spotlight');
+  await page.emulateMedia({reducedMotion:'no-preference'});await page.locator('.spotlight').hover();check(await page.locator('.spotlight').evaluate(el=>Boolean(el.style.getPropertyValue('--mouse-x'))),'Spotlight pointer algorithm actually mounted');
+  await page.getByRole('button',{name:'朗读回答',exact:true}).first().click();check(!errors.length,'Read-aloud capability does not throw');
+  const sourcesBefore=requests.length;manage('shell','-c',`from operations.models import HandoffPack; p=HandoffPack.objects.get(pk='${pack}'); m=p.event.materials.first(); m.text+=' Changed source'; m.save()`);await page.reload();
+  check(await page.locator('#send').isDisabled(),'Source change blocks generation');check(await page.locator('#export-md').getAttribute('aria-disabled')==='true','Source change blocks export');check(await page.locator('.turn').count()===3,'Source change retains history');check(requests.length===sourcesBefore,'Source failure sends no model data');
+  check(errors.length===0,'No browser script errors');
+  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({checks,errors,model:'isolated mock only',fontReport,unverified:['Real microphone capture','Real browser 200% zoom']},null,2));console.log(JSON.stringify({passed:checks.length,out,errors}));
+})().catch(error=>{console.error(error.stack);process.exitCode=1;}).finally(async()=>{await browser?.close();server?.kill();mock?.close();});

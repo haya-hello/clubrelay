@@ -1,0 +1,10 @@
+{% extends "ops/base.html" %}{% block content %}
+<header class="page-title"><div><h1>确认资料处理范围</h1><p>{{ event.title }} · 保存后不会自动生成分析。</p></div><a href="{% url 'handoff_start' event.pk %}">返回交接包</a></header>
+<section class="panel">{% if error %}<p class="notice notice-error">{{ error }}</p>{% endif %}
+{% if model_ready %}<p>处理位置：{{ config.get_mode_display }} · {{ config.base_url }} · {{ config.model }}</p>{% else %}<p class="notice">{{ reason }} <a href="{% url 'ops_settings' %}">打开设置</a></p>{% endif %}
+<p>下列勾选将成为本活动的完整许可范围，供负责人工作区使用；不等于允许公开分享。</p>
+<form method="post">{% csrf_token %}<input type="hidden" name="config_fingerprint" value="{{ fingerprint }}">
+{% for row in materials %}<p><label><input type="checkbox" name="materials" value="{{ row.material.pk }}" {% if row.selected %}checked{% endif %}> {{ row.material.original_name }} · {{ row.material.text|length }} 字</label></p>{% empty %}<p>暂无可授权的正文。</p>{% endfor %}
+<p><label><input type="checkbox" name="auto_future" {% if auto_future %}checked{% endif %}> 同时允许以后新增的正文自动处理（既有未勾选资料不会获准）</label></p>
+<p><label><input type="checkbox" name="consent" required> 我确认以上处理位置、完整资料范围及后续自动处理选择。</label></p>
+<button class="button" {% if not model_ready %}disabled{% endif %}>仅保存许可 / Save consent only</button></form></section>{% endblock %}

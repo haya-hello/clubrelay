@@ -1,0 +1,7 @@
+{% extends 'ops/base.html' %}
+{% block title %}收录上下文 · QQ 经验采集{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">CAPTURE</p><h1 class="page-title">收录上下文</h1><p class="muted">{{ marker.target.source.display_name }} · {{ marker.target.sent_at|date:'Y-m-d H:i' }}</p></div><a class="button secondary" href="{% url 'collector_inbox' %}">返回收件箱</a></div>
+<section class="panel"><h2>被标记的消息</h2><blockquote>{{ marker.target.text }}</blockquote><p class="muted">{{ marker.target.sender.display_name|default:marker.target.sender.external_id }}</p></section>
+<section class="panel"><div class="section-heading"><div><h2>必要上下文</h2><p class="muted">回复关系、同一参与者和前后 15 分钟窗口；最多 80 条。</p></div>{% if marker.context_truncated %}<span class="badge badge-neutral">已截断</span>{% endif %}</div>{% for item in context_messages %}<article class="activity-row"><div><div class="row-meta">{{ item.sent_at|date:'m-d H:i' }} · {{ item.sender.display_name|default:item.sender.external_id }}</div><p>{{ item.text|default:'[非文本消息]' }}</p></div></article>{% empty %}<p>没有可用上下文。</p>{% endfor %}</section>
+{% endblock %}

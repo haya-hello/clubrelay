@@ -1,0 +1,6 @@
+name: qinglian_collector
+description: 将授权 QQ 群消息安全送入青链经验知识库
+version: 0.1.0
+author: Qinglian Campus
+repo: local
+

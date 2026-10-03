@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<section class="panel narrow"><h1>阶段更新未保存</h1>{{ form.errors }}<p>{{ form.reason.value }}</p><a class="button" href="{% url 'activity_detail' activity.pk %}">返回活动</a></section>{% endblock %}

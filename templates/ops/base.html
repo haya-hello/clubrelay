@@ -1,0 +1,73 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}青链 · 社团运营台{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'operations/app.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <a class="brand" href="{% url 'ops_home' %}" aria-label="青链运营台首页">
+        <span class="brand-mark" aria-hidden="true">青</span>
+        <span><strong>青链</strong><small>社团运营台</small></span>
+      </a>
+      <div class="workspace-label"><span class="status-dot" aria-hidden="true"></span> 负责人私有空间</div>
+      <nav class="main-nav" aria-label="工作台">
+        <a href="{% url 'collector_dashboard' %}"{% if nav == 'collector' %} class="active" aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 8h10M7 12h6"/></svg>
+          <span>QQ 经验采集</span>
+        </a>
+        <a href="{% url 'ops_home' %}"{% if nav == 'home' %} class="active" aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span>社团总览</span>
+        </a>
+        <a href="{% url 'ops_events' %}"{% if nav == 'events' %} class="active" aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M7 12h10M7 16h6"/></svg>
+          <span>活动档案</span>
+        </a>
+        <a href="{% url 'ops_members' %}"{% if nav == 'members' %} class="active" aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 4v3"/></svg>
+          <span>成员观察</span>
+        </a>
+        <a href="{% url 'ops_assistant' %}"{% if nav == 'assistant' %} class="active" aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-2 2v-9.5A8.5 8.5 0 0 1 10.5 4H13a8 8 0 0 1 8 7.5Z"/><path d="M7 10h9M7 14h6"/></svg>
+          <span>分析助手</span>
+        </a>
+      </nav>
+      <div class="sidebar-tools">
+        <p class="nav-caption">资料与配置</p>
+        <a href="{% url 'ops_upload' %}">导入活动资料 <span aria-hidden="true">＋</span></a>
+        <a href="{% url 'ops_roster' %}">导入成员名册</a>
+        <a href="{% url 'ops_settings' %}"{% if nav == 'settings' %} class="active" aria-current="page"{% endif %}>处理设置</a>
+      </div>
+      <div class="sidebar-footer">
+        <span class="local-tag">LOCAL WORKSPACE</span>
+        <p>原件留在本机<br>AI 处理状态与范围单独管理</p>
+      </div>
+    </aside>
+    <div class="main-shell">
+      <header class="topbar">
+        <div class="breadcrumb"><span>青链校园版</span><span aria-hidden="true">/</span><strong>{% if nav == 'collector' %}QQ 经验采集{% elif nav == 'events' %}活动档案{% elif nav == 'members' %}成员观察{% elif nav == 'assistant' %}分析助手{% elif nav == 'settings' %}处理设置{% else %}社团总览{% endif %}</strong></div>
+        <div class="account">
+          <a class="settings-link" href="{% url 'ops_settings' %}">设置</a>
+          <span class="account-role">负责人</span>
+          <span class="account-name">{{ user.first_name|default:user.username }}</span>
+          <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit" class="text-button">退出</button></form>
+        </div>
+      </header>
+      <main id="main-content" class="main-content" tabindex="-1">
+        {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<div class="notice{% if message.tags == 'error' %} notice-error{% endif %}">{{ message }}</div>{% endfor %}</div>{% endif %}
+        {% block content %}{% endblock %}
+      </main>
+      <footer class="page-footer"><span>青链 · 负责人私有运营台</span><span>观察记录不是完整表现，判断请结合资料范围。</span></footer>
+    </div>
+  </div>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

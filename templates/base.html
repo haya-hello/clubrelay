@@ -1,0 +1,13 @@
+{% load static %}<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}青链 · 校园版{% endblock %}</title><link rel="stylesheet" href="{% static 'knowledge/app.css' %}"><link rel="stylesheet" href="{% static 'knowledge/assistant.css' %}"><script src="{% static 'knowledge/assistant.js' %}" defer></script><link rel="stylesheet" href="{% static 'activities/app.css' %}"><link rel="stylesheet" href="{% static 'activities/retros.css' %}"></head>
+<body>
+{% if user.is_authenticated %}
+<aside class="sidebar"><a class="brand" href="{% url 'home' %}"><span class="brand-mark">青</span>青链<span class="brand-small">校园版</span></a><p class="brand-note">经验留下来，行动发生在这里。</p>
+<nav aria-label="主导航"><a class="{% if nav == 'home' %}selected{% endif %}" href="{% url 'home' %}">首页<span>01</span></a><a class="{% if nav == 'activities' %}selected{% endif %}" href="{% url 'activities' %}">活动与项目<span>02</span></a><a class="{% if nav == 'library' %}selected{% endif %}" href="{% url 'library' %}">经验库<span>03</span></a><a class="{% if nav == 'assistant' %}selected{% endif %}" href="{% url 'assistant' %}">知识助手<span>04</span></a><a class="{% if nav == 'mine' %}selected{% endif %}" href="{% url 'mine' %}">我的提交<span>05</span></a><a class="{% if nav == 'growth' %}selected{% endif %}" href="{% url 'growth' %}">我的成长<span>06</span></a>{% if reviewer %}<a class="{% if nav == 'acceptance' %}selected{% endif %}" href="{% url 'acceptance' %}">成果验收<span>07</span></a><a class="{% if nav == 'queue' %}selected{% endif %}" href="{% url 'queue' %}">知识审核<span>08</span></a>{% endif %}</nav>
+<div class="sidebar-foot"><span class="dot"></span>本机演示 · S5 本地版<p>仅使用虚构数据<br>在线 AI / 微信：未接入</p></div></aside>
+<div class="shell"><header class="topbar"><span>青禾 AI 社团 <span class="muted">/ 经验传承</span></span><div class="account"><span class="badge approved">{% if reviewer %}负责人{% else %}成员{% endif %}</span><strong>{{ user.first_name|default:user.username }}</strong><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button" type="submit">退出登录</button></form></div></header><main>
+{% else %}<main class="login-shell">{% endif %}
+{% for message in messages %}<div class="flash" role="status">{{ message }}</div>{% endfor %}
+{% block content %}{% endblock %}
+{% if user.is_authenticated %}</main><footer class="page-foot">青链校园版 · 经验提交 → 人工审核 → 提问找依据 <span>真实本机应用 / 虚构演示资料</span></footer></div>{% else %}</main>{% endif %}
+</body></html>

@@ -1,0 +1,32 @@
+{% extends "ops/base.html" %}{% load static %}
+{% block title %}{{ pack.title }} · ClubRelay{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'operations/handoffs.css' %}">{% endblock %}
+{% block content %}
+<header class="page-title"><div><span class="eyebrow">CLUBRELAY / HANDOVER</span><h1>{{ pack.title }}</h1><p>{{ pack.event_title }} · {{ pack.get_status_display }} · {{ pack.created_at|date:"m月d日 H:i" }}</p></div><a href="{% url 'ops_event' pack.event_id %}">返回活动</a></header>
+{% if error %}<p class="notice notice-error" role="alert">{{ error }}</p>{% endif %}
+{% if not current %}<p class="notice notice-error">来源已变化，请使用当前资料重新生成。历史审阅记录保留，确认及正式导出已停止。</p>{% endif %}
+{% if pack.status == 'confirmed' and current %}<section class="panel"><h2>下一次活动，从这里准备 / Prepare your next event</h2><p>根据已确认经验追问、查看出处，并保存本次活动准备清单。</p><a class="button" href="{% url 'briefing' pack.pk %}">打开活动准备助手 / Open preparation</a></section>{% endif %}
+{% if new_materials %}<p class="notice">活动有其他资料未包含在本包中。本包只代表下方列出的资料范围。</p>{% endif %}
+{% if not pack.initialized_at %}
+<section class="panel"><h2>生成状态 / Generation</h2><p id="generation-status">{{ run.get_status_display }}</p>{% if run.error %}<p class="notice notice-error">{{ run.error }}</p>{% endif %}
+{% if run.status == 'pending' or run.status == 'running' %}<p>可以离开页面，稍后回来查看。取消只能停止采用结果，已发送请求无法撤回。</p><div class="toolbar"><a class="button secondary" href="{% url 'handoff_detail' pack.pk %}">刷新状态</a><form method="post" action="{% url 'handoff_cancel' pack.pk %}">{% csrf_token %}<button class="button secondary">取消采用结果</button></form></div>{% endif %}
+{% if run.status == 'complete' and current %}<form method="post" action="{% url 'handoff_prepare' pack.pk %}">{% csrf_token %}<input type="hidden" name="version" value="{{ pack.lock_version }}"><button class="button">开始审阅 / Start review</button></form>{% endif %}</section>
+{% else %}
+<div class="handoff-summary"><div><strong>{{ kept }}</strong><span>已采用 / Kept</span></div><div><strong>{{ pending }}</strong><span>待审阅 / To review</span></div><div><strong>{{ dropped }}</strong><span>已排除 / Excluded</span></div><div><strong>{{ questions }}</strong><span>待确认事项 / Questions</span></div></div>
+{% if items %}<nav class="handoff-item-nav" aria-label="交接条目">{% for row in items %}<a href="?item={{ row.pk }}" class="{% if active_item.pk == row.pk %}selected{% endif %}">{{ row.position }}. {{ row.title }} <small>{{ row.get_decision_display }}</small></a>{% endfor %}</nav>
+<div class="handoff-layout"><section class="panel">
+{% if active_item %}<span class="badge">{{ active_item.get_decision_display }}</span>{% if active_item.edited %} <span class="badge">负责人修订</span>{% endif %}
+{% if pack.status == 'draft' and current %}
+<form method="post" id="handoff-editor" action="{% url 'handoff_item_save' pack.pk active_item.pk %}">{% csrf_token %}<input type="hidden" name="version" value="{{ pack.lock_version }}">{{ form.as_p }}
+<p class="muted">修改后先保存，再核对并采用。引文保持原样；材料记录、建议和未知事项需要分别判断。</p>
+<div class="toolbar"><button class="button secondary" name="action" value="save">保存修改 / Save</button><button class="button" name="action" value="keep">采用此条 / Keep</button><button class="button secondary" name="action" value="drop">不采用 / Exclude</button></div></form>
+{% else %}<h2>{{ active_item.title }}</h2><span class="badge">{{ active_item.get_section_display }}</span>{% if active_item.record %}<h3>材料记录 / Records</h3><p class="prose">{{ active_item.record }}</p>{% endif %}{% if active_item.suggestion %}<h3>下次建议 / Suggested next step</h3><p class="prose">{{ active_item.suggestion }}</p>{% endif %}{% if active_item.conditions %}<h3>适用条件与未知项</h3><p class="prose">{{ active_item.conditions }}</p>{% endif %}{% endif %}
+<details><summary>查看AI初稿 / Original draft</summary><p>{{ active_item.original.title }}</p><p class="prose">{{ active_item.original.record }}</p><p class="prose">{{ active_item.original.suggestion }}</p><p class="prose">{{ active_item.original.conditions }}</p></details>{% endif %}</section>
+<aside class="panel handoff-evidence"><h2>对照依据 / Source evidence</h2><p class="muted">引文匹配只证明文字存在。请核对它是否支持左侧表述。</p>
+{% for ref in references %}<article class="handoff-source"><h3>{{ ref.title }}</h3><blockquote>{{ ref.quote }}</blockquote><details><summary>查看上下文 / Context</summary><p class="prose">{{ ref.context }}</p></details>{% if ref.id %}<p><a href="{% url 'ops_material' ref.id %}" target="_blank" rel="noopener">打开完整原文 / Full source</a></p>{% endif %}</article>{% empty %}<p class="notice">{% if current %}此条没有文件引文，仅可作为待确认事项。{% else %}来源已变化，原文预览暂不可用。{% endif %}</p>{% endfor %}</aside></div>
+{% else %}<p class="notice">未生成可用条目，尚未完成交接。可补充资料后重新生成。</p>{% endif %}
+{% if pack.status == 'draft' %}<section class="panel"><h2>确认交接包 / Confirm handover</h2><p>采用 {{ kept }} 条，排除 {{ dropped }} 条，待审 {{ pending }} 条。待确认问题会继续保留为未解决事项。</p>
+<form method="post" action="{% url 'handoff_confirm' pack.pk %}">{% csrf_token %}<input type="hidden" name="version" value="{{ pack.lock_version }}"><p><label for="reviewer-label">确认人显示名（进入交接文件，不自动使用登录账号）</label><input id="reviewer-label" name="reviewer_label" maxlength="100" required></p><p><label><input type="checkbox" name="confirm_ack" required> 我已审阅交付内容，知道待确认事项仍需核实。</label></p><button class="button" {% if not can_confirm %}disabled{% endif %}>确认并冻结版本 / Confirm version</button></form></section>
+{% else %}<section class="panel"><h2>已审阅确认 / Reviewed</h2><p>{{ pack.reviewer_label }} · {{ pack.confirmed_at|date:"Y-m-d H:i" }}。此版本只读，修改需创建新草稿。</p><div class="toolbar">{% if current %}<a class="button" href="{% url 'handoff_export' pack.pk 'preview' %}">预览与导出 / Export</a><form method="post" action="{% url 'handoff_copy' pack.pk %}">{% csrf_token %}<input type="hidden" name="token" value="{{ copy_token }}"><button class="button secondary">复制为新草稿 / Revise</button></form>{% endif %}</div></section>{% endif %}{% endif %}
+<section class="panel"><h2>资料范围与版本 / Coverage and versions</h2><p>{{ pack.scope }}</p>{% for source in pack.source_manifest %}<p>{{ source.title }} · {{ source.text|length }} 字</p>{% endfor %}<a href="{% url 'handoff_start' pack.event_id %}?parent={{ pack.pk }}">选择当前资料，重新生成新版本 →</a><details><summary>查看本活动交接版本</summary>{% for version in versions %}<p><a href="{% url 'handoff_detail' version.pk %}">{{ version.created_at|date:"m-d H:i:s" }} · {{ version.title }} · {{ version.get_status_display }}</a></p>{% endfor %}</details></section>
+{% endblock %}{% block extra_scripts %}<script src="{% static 'operations/handoffs.js' %}"></script>{% endblock %}

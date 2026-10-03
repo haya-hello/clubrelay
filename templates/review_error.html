@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<section class="panel narrow"><h1>这次操作没有保存</h1><p>内容或状态可能已变化。你的意见保留在下面，刷新原文后再确认。</p>{{ form.errors }}<div class="prose">{{ form.reason.value|default:"尚未填写意见" }}</div><a class="button" href="{% url 'detail' entry.pk %}">刷新经验详情</a></section>{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'ops/base.html' %}
+{% block title %}{{ card.title }} · 知识审核{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">KNOWLEDGE CARD</p><h1 class="page-title">{{ card.title }}</h1><p class="muted"><span class="badge">{{ card.get_status_display }}</span> {% if card.extraction_mode == 'local_draft' %}本地草稿，尚未运行 AI{% endif %}</p></div><a class="button secondary" href="{% url 'collector_knowledge' %}">返回列表</a></div>
+<div class="grid two-col"><section class="panel"><form method="post" class="form-stack">{% csrf_token %}{% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}<div class="filter-actions"><button class="button secondary" name="action" value="save" type="submit">保存草稿</button><button class="button" name="action" value="confirm" type="submit">确认入库</button><button class="button danger" name="action" value="reject" type="submit">拒绝</button></div></form></section>
+<section class="panel"><h2>原始证据</h2>{% for citation in card.citations.all %}<article class="activity-row"><div><div class="row-meta">{{ citation.message.sent_at|date:'Y-m-d H:i' }} · {{ citation.message.sender.display_name|default:citation.message.sender.external_id }}</div><blockquote>{{ citation.quote }}</blockquote></div></article>{% empty %}<p>没有可用引用，不能确认入库。</p>{% endfor %}</section></div>
+{% endblock %}

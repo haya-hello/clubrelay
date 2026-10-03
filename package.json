@@ -1,0 +1,20 @@
+{
+  "name": "qinglian-campus-browser-qa",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local browser QA only; the application runs on Django.",
+  "scripts": {
+    "qa:amazon": "node scripts/qa-amazon.cjs",
+    "qa:clubrelay": "node scripts/qa-clubrelay.cjs",
+    "qa:manager": "node scripts/qa-manager.cjs",
+    "qa:manager-ai": "node scripts/qa-manager-ai.cjs",
+    "qa:s1": "node scripts/qa-browser.cjs",
+    "qa:s2": "node scripts/qa-assistant.cjs",
+    "qa:s3": "node scripts/qa-activities.cjs",
+    "qa:s4": "node scripts/qa-deliveries.cjs",
+    "qa:s5": "node scripts/qa-retros.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

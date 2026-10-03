@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block content %}
+<div class="retro-page"><div class="breadcrumb"><a href="{% url 'activity_detail' retro.activity_id %}">{{ retro.activity.title }}</a> / 复盘 v{{ retro.number }}</div>
+<div class="page-heading"><div><h1>活动复盘 · v{{ retro.number }}</h1><p><span class="badge {% if retro.status == 'confirmed' and fresh %}approved{% else %}pending{% endif %}">{{ retro.get_status_display }}</span> · 本地事实整理，非 AI 生成</p></div><a href="{% url 'activity_detail' retro.activity_id %}">返回活动</a></div>
+{% if not fresh %}<div class="notice">任务或验收已变化，这份事实快照需要重新核对；关联经验暂停检索。{% if reviewer %}草稿可刷新快照；已确认复盘需创建新版。{% endif %}</div>{% endif %}
+{% if show_content %}
+<section class="panel"><div class="section-heading"><h2>系统记录的事实快照</h2><span class="muted">不包含成果正文、附件和私密验收意见</span></div>
+<div class="stats"><div class="stat"><span>有效已验收任务</span><strong>{{ retro.snapshot.counts.verified_done }}</strong></div><div class="stat"><span>尚未完成</span><strong>{{ retro.snapshot.counts.unfinished }}</strong></div><div class="stat"><span>已取消</span><strong>{{ retro.snapshot.counts.cancelled }}</strong></div></div>
+<p><strong>原目标：</strong>{{ retro.snapshot.activity.objective }}</p>
+<details><summary>查看 {{ retro.snapshot.counts.total }} 项任务的快照状态</summary>{% for item in retro.snapshot.tasks %}<div class="entry-row"><a href="{% url 'task_detail' item.id %}">{{ item.title }}</a><span>{% if item.verified_done %}已验收{% elif item.status == 'done' %}完成状态待核对{% else %}{{ item.status_label }}{% endif %}{% if item.blocked %} · 受阻{% endif %}</span></div>{% empty %}<p class="muted">快照中没有任务；不能由此推断活动效果或参与人数。</p>{% endfor %}</details></section>
+{% if retro.status == 'draft' and reviewer %}
+<section class="panel"><h2>补充实际情况与判断</h2><form method="post" action="{% url 'retro_save' retro.pk %}">{% csrf_token %}{{ form.revision }}{% for field in form.visible_fields %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}<div class="form-actions"><button class="button" name="save_action" value="save">保存草稿</button><button class="button outline" name="save_action" value="refresh">保存并刷新事实快照</button></div></form></section>
+<section class="panel"><h2>确认这版复盘</h2><p>活动需先进入收尾；请先保存上面的内容。确认后不能直接改正文，修改需要创建新版。新确认版本会替代旧复盘，旧版派生知识暂停检索。</p><form method="post" action="{% url 'retro_action' retro.pk %}">{% csrf_token %}<input type="hidden" name="revision" value="{{ retro.revision }}"><label class="checkbox-label"><input type="checkbox" name="acknowledged" required>我已核对事实，内容可向本活动成员展示，不含私密验收意见</label><button class="button" name="action" value="confirm">确认复盘</button></form></section>
+{% else %}
+<section class="panel"><h2>实际结果（人工核实）</h2><p class="prose">{{ retro.facts|linebreaksbr }}</p><h2>计划与实际的差异</h2><p class="prose">{{ retro.differences|default:"尚未补充"|linebreaksbr }}</p><h2>原因假设（待验证）</h2><p class="prose">{{ retro.hypotheses|default:"尚无足够依据"|linebreaksbr }}</p><h2>下次的具体改进</h2><p class="prose">{{ retro.improvements|linebreaksbr }}</p><h2>适用边界</h2><p class="prose">{{ retro.applicability|linebreaksbr }}</p></section>
+{% endif %}
+{% else %}<section class="panel"><h2>这份复盘暂不作为当前依据</h2><p>负责人重新核对后会提供新版本，旧内容已隐藏。</p></section>{% endif %}
+{% if reviewer %}<section class="panel"><h2>经验沉淀与版本</h2>{% if link %}<p><a href="{% url 'detail' link.entry_id %}">查看已提炼的知识条目 →</a></p>{% elif retro.status == 'confirmed' and fresh %}<a class="button" href="{% url 'retro_export' retro.pk %}">提炼一条经验并送审</a>{% endif %}
+{% if retro.status != 'draft' %}<form method="post" action="{% url 'retro_create' retro.activity_id %}" class="space-top">{% csrf_token %}<button class="button outline">创建新版草稿</button></form>{% endif %}
+{% if retro.status == 'confirmed' %}<form method="post" action="{% url 'retro_action' retro.pk %}" class="space-top">{% csrf_token %}<input type="hidden" name="revision" value="{{ retro.revision }}"><label for="withdraw-reason">撤回原因</label><input id="withdraw-reason" name="reason" required maxlength="1000"><button class="button danger space-top" name="action" value="withdraw">撤回复盘</button></form>{% endif %}</section>
+<section class="panel"><h2>操作记录</h2>{% for event in events %}<p>{{ event.get_action_display }} · {{ event.actor.first_name }} · {{ event.created_at|date:"m-d H:i" }}{% if event.reason %} · {{ event.reason }}{% endif %}</p>{% endfor %}</section>{% endif %}
+</div>{% endblock %}

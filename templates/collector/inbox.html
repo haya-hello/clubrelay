@@ -1,0 +1,7 @@
+{% extends 'ops/base.html' %}
+{% block title %}本周收件箱 · QQ 经验采集{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">INBOX</p><h1 class="page-title">本周收件箱</h1><p class="muted">查看被标记的原消息和系统收集的上下文。</p></div><form method="post" action="{% url 'collector_process' %}">{% csrf_token %}<button class="button" type="submit">生成候选卡</button></form></div>
+<section class="panel"><div class="filter-actions"><a class="button small secondary" href="{% url 'collector_inbox' %}">全部</a><a class="button small secondary" href="?status=pending">待整理</a><a class="button small secondary" href="?status=processed">已生成候选</a></div></section>
+<section class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>群</th><th>原消息</th><th>发送者</th><th>上下文</th><th>状态</th></tr></thead><tbody>{% for marker in markers %}<tr><td>{{ marker.target.source.display_name }}</td><td class="cell-main"><a href="{% url 'collector_marker' marker.pk %}">{{ marker.target.text|truncatechars:90 }}</a><span class="cell-note">{{ marker.target.sent_at|date:'Y-m-d H:i' }}</span></td><td>{{ marker.target.sender.display_name|default:marker.target.sender.external_id }}</td><td>{{ marker.context_message_ids|length }} 条{% if marker.context_truncated %}，已截断{% endif %}</td><td><span class="badge">{{ marker.get_status_display }}</span></td></tr>{% empty %}<tr><td colspan="5">当前没有收录项。请先在群内回复消息并发送收录指令，或使用模拟器。</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

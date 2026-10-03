@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<section class="panel narrow"><h1>验收操作未保存</h1><p>请核对当前版本和填写内容。意见已保留，统计没有因失败操作而改变。</p>{{ form.errors }}<p class="prose">{{ form.reason.value|default:"未填写意见" }}</p><a class="button" href="{% url 'submission_detail' result.pk %}">刷新成果详情</a></section>{% endblock %}

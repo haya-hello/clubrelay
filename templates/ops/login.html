@@ -1,0 +1,33 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>负责人登录 · 青链</title>
+  <link rel="stylesheet" href="{% static 'operations/app.css' %}">
+</head>
+<body class="login-page">
+  <main class="login-layout">
+    <section class="login-intro" aria-label="青链运营台说明">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">青</span><span><strong>青链</strong><small>社团运营台</small></span></div>
+      <div><p class="eyebrow">PRIVATE WORKSPACE</p><h1>活动有记录，<br>观察有依据。</h1><p class="login-description">整理活动资料，了解成员的实际参与，<br class="desktop-break">留下能够继续使用的经验。</p></div>
+      <div class="login-boundaries"><span>负责人专用</span><span>本机资料归档</span><span>证据可追溯</span></div>
+    </section>
+    <section class="login-card">
+      <p class="eyebrow">WELCOME BACK</p><h2>登录私有工作台</h2><p class="muted">使用已有负责人账号继续。</p>
+      {% if messages %}{% for message in messages %}<div class="notice notice-error">{{ message }}</div>{% endfor %}{% endif %}
+      <form method="post" action="{% url 'login' %}" class="login-form">
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        {{ form.non_field_errors }}
+        {% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<div class="helptext">{{ field.help_text }}</div>{% endif %}</div>{% endfor %}
+        <button class="button" type="submit">进入运营台 <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="login-account-note"><strong>在哪里找到账号？</strong><p>本机演示账号信息保存在项目的 <code>var/demo-accounts.json</code>。请使用负责人账号，普通成员账号无法进入此工作台。</p></div>
+      <p class="login-footnote">仅供本机使用。资料是否可以交给 AI 处理，需在处理设置中另行确认。</p>
+    </section>
+  </main>
+</body>
+</html>

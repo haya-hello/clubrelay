@@ -1,0 +1,18 @@
+{% extends "ops/base.html" %}{% load static %}
+{% block title %}ClubRelay · 制作交接包{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'operations/handoffs.css' %}">{% endblock %}
+{% block content %}
+<header class="page-title"><div><span class="eyebrow">CLUBRELAY / PREPARE</span><h1>把这次经验，交给下一位</h1><p>{{ event.title }} · 选择资料，生成可核对的交接草稿。</p></div><a href="{% url 'ops_event' event.pk %}">返回活动</a></header>
+<div class="handoff-steps"><strong>01 准备资料</strong><span>02 对照审阅</span><span>03 确认交付</span></div>
+{% if parent %}<p class="notice">将基于当前资料重新生成新版本。原版本及人工修改会保留。</p>{% endif %}
+<div class="handoff-layout"><section class="panel"><h2>本次交接 / This handover</h2>
+<form method="post">{% csrf_token %}{{ form.non_field_errors }}{{ form.token }}
+<p>{{ form.title.label_tag }}{{ form.title }}{{ form.title.errors }}</p><p>{{ form.scope.label_tag }}{{ form.scope }}{{ form.scope.errors }}</p>
+<fieldset><legend>{{ form.materials.label }}</legend>{{ form.materials }}{{ form.materials.errors }}</fieldset>
+<p class="muted">只处理勾选正文。最多40份、每份6000字、合计60000字；超限会提示，不会静默截断。</p>
+<button class="button" type="submit" {% if not model_ready %}disabled{% endif %}>生成交接草稿 / Generate draft</button>
+</form></section>
+<aside><section class="panel"><h2>处理位置与许可</h2>{% if model_ready %}<p>{{ config.get_mode_display }} · {{ config.model }}</p><p class="muted">{{ config.base_url }}</p>{% else %}<p class="notice">{{ reason }}</p>{% endif %}
+<a href="{% url 'ops_settings' %}">模型设置</a><p><a href="{% url 'handoff_permission' event.pk %}">检查并保存资料许可 →</a></p><p class="muted">许可保存与生成分开。保存许可不会调用模型。</p></section>
+<section class="panel"><h2>活动资料覆盖</h2>{% for row in materials %}<div class="handoff-source"><strong>{{ row.material.original_name }}</strong><p>{{ row.material.get_parse_status_display }}{% if row.material.excluded %} · 已排除{% endif %} · {% if row.allowed %}当前模型已获准{% else %}未获当前模型许可{% endif %}</p></div>{% empty %}<p>先导入活动筹备、执行记录或复盘。</p>{% endfor %}<a href="{% url 'ops_upload' %}?event={{ event.pk }}">导入活动资料 →</a></section></aside></div>
+{% endblock %}

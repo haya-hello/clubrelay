@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}
+<div class="breadcrumb"><a href="{% url 'assistant' %}">知识助手</a> / 原文出处</div>
+<div class="page-heading"><div><div class="eyebrow">当前有效来源 / v{{ evidence.version }}</div><h1>{{ evidence.title }}</h1><p>原文片段 {{ evidence.part_number }} · 本页打开时已重新核对版本与审核状态</p></div><a class="button outline" href="{% url 'assistant' %}">返回提问</a></div>
+<div class="columns"><section class="panel"><h2>引用原文</h2><blockquote class="source-excerpt">{{ evidence.excerpt }}</blockquote><a href="{% url 'detail' evidence.entry_id %}">查看当前完整原文 →</a></section><aside class="panel"><h2>适用边界与来源</h2><dl><dt>来源</dt><dd>{{ evidence.source }}</dd><dt>适用范围</dt><dd>{{ evidence.applicability }}</dd></dl><p class="small muted">这是原文摘录，不是模型生成内容；不能用片段替代完整语境。</p></aside></div>
+{% endblock %}

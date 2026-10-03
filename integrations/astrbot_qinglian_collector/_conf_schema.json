@@ -1,0 +1,28 @@
+{
+  "enabled": {
+    "description": "启用青链采集桥",
+    "type": "bool",
+    "default": true,
+    "hint": "关闭后不转发任何群消息。"
+  },
+  "bridge_url": {
+    "description": "青链本地接收地址",
+    "type": "string",
+    "default": "http://127.0.0.1:8021/integrations/qq/events/",
+    "hint": "应保持为本机 127.0.0.1 地址。"
+  },
+  "bridge_secret": {
+    "description": "青链桥接密钥",
+    "type": "string",
+    "default": "",
+    "obvious_hint": true,
+    "hint": "复制青链 var/qq-bridge.key 的内容。请勿截图或发送给他人。"
+  },
+  "timeout_seconds": {
+    "description": "请求超时秒数",
+    "type": "int",
+    "default": 5,
+    "hint": "本机连接通常 5 秒足够。"
+  }
+}
+

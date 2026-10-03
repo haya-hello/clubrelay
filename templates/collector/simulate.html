@@ -1,0 +1,7 @@
+{% extends 'ops/base.html' %}
+{% block title %}消息模拟器 · QQ 经验采集{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">SAFE TEST</p><h1 class="page-title">消息模拟器</h1><p class="muted">不登录 QQ，使用与真实接入相同的数据库和收录逻辑。</p></div><a class="button secondary" href="{% url 'collector_inbox' %}">查看收件箱</a></div>
+<section class="panel"><form method="post" class="form-stack">{% csrf_token %}{% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}{{ field.errors }}</div>{% endfor %}<button class="button" type="submit">写入模拟消息</button></form></section>
+<section class="panel scope-note"><strong>建议测试顺序</strong><p>先发送一条经验消息，记住生成的消息 ID；再发送第二条消息，内容填写授权群的收录指令，并把第一条的消息 ID 填入“回复的消息 ID”。</p>{% if result %}<pre>{{ result }}</pre>{% endif %}</section>
+{% endblock %}

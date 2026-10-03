@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">社团知识 / 已审核</div><h1>遇到问题，先找一份经验。</h1><p>当前是本地关键词检索，不是 AI 问答。可搜索标题、正文与适用场景。</p></div><a class="button" href="{% url 'submit' %}">＋ 提交经验</a></div>
+<form method="get" class="search panel"><label class="sr-only" for="id_q">搜索关键词</label><input id="id_q" name="q" maxlength="120" value="{{ form.q.value|default:'' }}" placeholder="试试「设备」或「提交反馈」，多个词用空格分开">{{ form.category }}<button class="button" type="submit">查找经验</button><a class="subtle" href="{% url 'library' %}">清空</a>{{ form.errors }}</form>
+<div class="section-heading"><h2>可用经验 <span class="count">{{ page.paginator.count }}</span></h2><span class="muted">仅当前已审核版本 · 点击查看正文</span></div>
+<div class="knowledge-grid">{% for entry in page %}<article class="knowledge-card"><div class="section-heading"><span class="category">{{ entry.get_category_display }}</span><span class="badge approved">已审核 · v{{ entry.version }}</span></div><h2><a href="{% url 'detail' entry.pk %}">{{ entry.title }}</a></h2><p class="excerpt">{{ entry.body|truncatechars:150 }}</p><div class="source">来源：{{ entry.source }}</div><div class="card-bottom"><span>{{ entry.owner.first_name }} · {{ entry.updated_at|date:"m月d日" }}</span><a href="{% url 'detail' entry.pk %}">查看原文 →</a></div></article>{% empty %}<div class="panel empty"><h2>暂未找到相关经验</h2><p>试试更短的关键词，或提交一条新经验。待审核内容不会出现在这里。</p><a href="{% url 'submit' %}">我来补充 →</a></div>{% endfor %}</div>
+{% include "pagination.html" %}
+{% endblock %}

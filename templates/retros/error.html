@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<section class="panel narrow"><h1>复盘操作未保存</h1>{{ form.errors }}<p>{{ form.reason.value|default:"请核对当前状态与事实快照。" }}</p><a class="button" href="{% url 'retro_detail' retro.pk %}">刷新复盘</a></section>{% endblock %}

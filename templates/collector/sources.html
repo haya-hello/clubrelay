@@ -1,0 +1,9 @@
+{% extends 'ops/base.html' %}
+{% block title %}授权群 · QQ 经验采集{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">SOURCES</p><h1 class="page-title">授权群</h1><p class="muted">只有已知情、已启用且标识匹配的群才能写入数据库。</p></div><a class="button secondary" href="{% url 'collector_dashboard' %}">返回采集器</a></div>
+<div class="grid two-col">
+  <section class="panel"><h2>新增授权群</h2><form method="post" class="form-stack">{% csrf_token %}{% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}{{ field.errors }}</div>{% endfor %}<button class="button" type="submit">保存授权群</button></form></section>
+  <section class="panel"><h2>已配置</h2>{% for source in sources %}<article class="activity-row"><div><div class="row-meta"><span class="badge">{% if source.enabled %}已启用{% else %}已停用{% endif %}</span> {{ source.platform }}</div><h3>{{ source.display_name }}</h3><p class="muted">群标识：{{ source.external_id }}<br>指令：{{ source.capture_phrase }} · 原始消息保留 {{ source.retention_days }} 天<br>负责人标识：{{ source.manager_ids|join:', ' }}</p></div></article>{% empty %}<div class="empty compact"><h3>还没有授权群</h3><p>先添加一个测试群或虚构群标识。</p></div>{% endfor %}</section>
+</div>
+{% endblock %}

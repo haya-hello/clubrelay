@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<section class="panel narrow"><h1>任务操作未保存</h1><p>任务状态或承担人可能已经变化。请刷新后确认；你的说明保留在下方。</p>{{ form.errors }}<p class="prose">{{ form.reason.value|default:"未填写说明" }}</p><a class="button" href="{% url 'task_detail' task.pk %}">刷新任务</a></section>{% endblock %}

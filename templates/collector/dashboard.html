@@ -1,0 +1,31 @@
+{% extends 'ops/base.html' %}
+{% block title %}QQ 经验采集 · 青链{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">CLUB MEMORY</p><h1 class="page-title">QQ 经验采集器</h1><p class="muted">回复一条消息并发送“收录经验”，每周把讨论变成可审核的社团知识。</p></div>
+  <a class="button" href="{% url 'collector_simulate' %}">测试一条消息</a>
+</div>
+<section class="stats" aria-label="采集概况">
+  <a class="stat" href="{% url 'collector_sources' %}"><span class="stat-label">授权群</span><strong class="stat-number">{{ stats.sources }}</strong><span class="stat-help">只接收白名单群</span></a>
+  <a class="stat" href="{% url 'collector_inbox' %}"><span class="stat-label">已保存消息</span><strong class="stat-number">{{ stats.messages }}</strong><span class="stat-help">从启用后持续保存</span></a>
+  <a class="stat stat-accent" href="{% url 'collector_inbox' %}?status=pending"><span class="stat-label">待整理</span><strong class="stat-number">{{ stats.pending }}</strong><span class="stat-help">负责人已标记</span></a>
+  <a class="stat" href="{% url 'collector_knowledge' %}"><span class="stat-label">正式知识</span><strong class="stat-number">{{ stats.knowledge }}</strong><span class="stat-help">经负责人确认</span></a>
+</section>
+<div class="grid two-col dashboard-main">
+  <section class="panel">
+    <div class="section-heading"><div><h2>开始使用</h2><p class="muted">先在本机验证，再绑定真实 QQ。</p></div></div>
+    <ol class="issue-list">
+      <li><span class="issue-marker"></span><span>在目标 QQ 群发送 <code>/青链接入信息</code>，取得群标识和负责人标识。</span></li>
+      <li><span class="issue-marker"></span><span><a href="{% url 'collector_sources' %}">添加授权群</a>，核对标识并确认成员已知情。</span></li>
+      <li><span class="issue-marker"></span><span><a href="{% url 'collector_simulate' %}">模拟一段群聊</a>，验证回复标记是否符合习惯。</span></li>
+      <li><span class="issue-marker"></span><span>进入<a href="{% url 'collector_inbox' %}">本周收件箱</a>，确认上下文没有抓错。</span></li>
+      <li><span class="issue-marker"></span><span>生成本地候选卡，人工补充后确认进入知识库。</span></li>
+    </ol>
+    <div class="scope-note"><strong>当前处理方式</strong><p>候选卡目前是明确标注的本地草稿，不冒充 AI 总结。连接真实模型后再启用自动提炼。</p></div>
+  </section>
+  <section class="panel">
+    <div class="section-heading"><div><h2>最近收录</h2><p class="muted">只显示负责人主动标记的消息。</p></div><a class="text-link" href="{% url 'collector_inbox' %}">全部</a></div>
+    {% for marker in recent_markers %}<article class="activity-row"><div><div class="row-meta"><span class="badge">{{ marker.get_status_display }}</span> {{ marker.target.source.display_name }}</div><h3><a href="{% url 'collector_marker' marker.pk %}">{{ marker.target.text|truncatechars:64 }}</a></h3><p class="muted">{{ marker.target.sender.display_name|default:marker.target.sender.external_id }} · {{ marker.target.sent_at|date:'m-d H:i' }}</p></div></article>{% empty %}<div class="empty compact"><h3>还没有收录消息</h3><p>可以先用模拟器走一遍，不需要登录真实 QQ。</p></div>{% endfor %}
+  </section>
+</div>
+{% endblock %}
